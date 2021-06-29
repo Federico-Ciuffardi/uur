@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+git clone https://github.com/tmux/tmux.git || true
+cd tmux
+git pull
+sh autogen.sh
+./configure && sudo make install

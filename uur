@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+source /usr/lib/naylib
+
+function install(){
+  package="$1"
+  package_realpath="$(realpath $package)"
+  cd "$uur_data_path"
+  bash "$package_realpath/make"
+  cd "$SCRIPTPATH"
+}
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+SCRIPT=$(readlink -f "$0")
+SCRIPTPATH=$(dirname "$SCRIPT")
+
+uur_data_path="$HOME/.local/share/uur"
+
+mkdir -p "$uur_data_path"
+cd "$SCRIPTPATH"
+
+case $1 in
+  list)
+    ls -d */ | sed 's#/##g'
+    ;;
+  all)
+    packages=($(ls))
+    for package in "${packages[@]}" ; do
+      [ -d "$package" ] || continue
+      draw_spinner "Installing \"$package\"" "install "$package""
+    done
+    ;;
+  install)
+    sudo -v
+    draw_spinner "Installing \"$2\"" "install "$2""
+    ;;
+esac
