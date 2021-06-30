@@ -10,3 +10,4 @@ cd libxft-bgra-debian
 git pull
 cd compiled
 sudo dpkg -i *.deb
+sudo apt --fix-broken install -y
