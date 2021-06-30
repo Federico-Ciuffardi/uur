@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+dpkg -s "libxinerama-dev" &>/dev/null || sudo apt install -y libxinerama-dev 
+dpkg -s "libxcb1-dev" &>/dev/null || sudo apt install -y libxcb1-dev 
+dpkg -s "libx11-xcb-dev" &>/dev/null || sudo apt install -y libx11-xcb-dev 
+dpkg -s "libxcb-res0-dev" &>/dev/null || sudo apt install -y libxcb-res0-dev 

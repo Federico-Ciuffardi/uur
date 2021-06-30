@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+dpkg -s "meson" &>/dev/null || sudo apt install -y meson
+dpkg -s "cmake" &>/dev/null || sudo apt install -y cmake
+dpkg -s "libev-dev" &>/dev/null || sudo apt install -y libev-dev
+dpkg -s "libxcb-render-util0-dev" &>/dev/null || sudo apt install -y libxcb-render-util0-dev
+dpkg -s "libxcb-image0-dev" &>/dev/null || sudo apt install -y libxcb-image0-dev
+dpkg -s "libxcb-damage0-dev" &>/dev/null || sudo apt install -y libxcb-damage0-dev
+dpkg -s "libxcb-randr0-dev" &>/dev/null || sudo apt install -y libxcb-randr0-dev
+dpkg -s "libxcb-sync-dev" &>/dev/null || sudo apt install -y libxcb-sync-dev
+dpkg -s "libxcb-composite0-dev" &>/dev/null || sudo apt install -y libxcb-composite0-dev
+dpkg -s "libxcb-xinerama0-dev" &>/dev/null || sudo apt install -y libxcb-xinerama0-dev
+dpkg -s "libxcb-present-dev" &>/dev/null || sudo apt install -y libxcb-present-dev
+dpkg -s "libxcb-glx0-dev" &>/dev/null || sudo apt install -y libxcb-glx0-dev
+dpkg -s "uthash-dev" &>/dev/null || sudo apt install -y uthash-dev
+dpkg -s "libconfig-dev" &>/dev/null || sudo apt install -y libconfig-dev

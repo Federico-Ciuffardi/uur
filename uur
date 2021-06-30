@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
 
-source /usr/lib/naylib
+source "/usr/lib/naylib"
+source "/etc/lsb-release"
 
 function install(){
   package="$1"
   package_realpath="$(realpath $package)"
+
   cd "$uur_data_path"
+
+  [ -f "$package_realpath/${DISTRIB_ID}Deps" ] && draw_spinner "Installing \"$package\" dependencies" "bash "$package_realpath/${DISTRIB_ID}Deps""
+
   draw_spinner "Installing \"$package\"" "bash "$package_realpath/make""
+
   cd "$SCRIPTPATH"
 }
 

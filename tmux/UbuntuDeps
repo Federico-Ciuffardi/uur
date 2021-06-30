@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+dpkg -s "autotools-dev" &>/dev/null || sudo apt install -y autotools-dev
+dpkg -s "automake" &>/dev/null || sudo apt install -y automake
+dpkg -s "libevent-dev" &>/dev/null || sudo apt install -y libevent-dev
+dpkg -s "libncurses5-dev" &>/dev/null || sudo apt install -y libncurses5-dev
+dpkg -s "bison" &>/dev/null || sudo apt install -y bison
