@@ -7,19 +7,22 @@ function install(){
   package="$1"
   package_realpath="$(realpath $package)"
 
+  # go to data/bin/build path
   cd "$uur_data_path"
+  mkdir -p "$package"
+  cd "$package"
 
-  [ -f "$package_realpath/${DISTRIB_ID}Deps" ] && draw_spinner "Installing \"$package\" dependencies" "bash "$package_realpath/${DISTRIB_ID}Deps""
+  # install package dependencies
+  ! [ -f "$package_realpath/${DISTRIB_ID}Deps" ] \
+  || draw_spinner "Installing \"$package\" dependencies" "bash "$package_realpath/${DISTRIB_ID}Deps"" \
+  || exit 1
 
+  # install package
   draw_spinner "Installing \"$package\"" "bash "$package_realpath/make""
 
+  # go back to scriptpath
   cd "$SCRIPTPATH"
 }
-
-# set -o errexit      # Exit on most errors (see the manual)
-# set -o nounset      # Disallow expansion of unset variables
-# set -o pipefail     # Use last non-zero exit code in a pipeline
-# set -o errtrace     # Ensure the error trap handler is inherited
 
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")

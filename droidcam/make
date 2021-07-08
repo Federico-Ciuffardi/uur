@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+# get source 
+wget -O droidcam_latest.zip https://files.dev47apps.net/linux/droidcam_1.7.3.zip
+# sha1sum: 6ac70724f2adac5cc98d3174a0dfefc88057458e
+rm -r droidcam
+unzip droidcam_latest.zip -d droidcam
+cd droidcam 
+sudo ./install-client
+sudo ./install-video
