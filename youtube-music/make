@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+# install nativifier
+
+git clone https://aur.archlinux.org/youtube-music-bin.git youtube-music || true
+cd youtube-music
+git pull
+source PKGBUILD
+cd ..
+wget -O install.deb "https://github.com/th-ch/youtube-music/releases/download/v$pkgver/${pkgname%-bin}_${pkgver}_amd64.deb"
+sudo dpkg -i install.deb
