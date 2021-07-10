@@ -5,12 +5,7 @@ set -o nounset      # Disallow expansion of unset variables
 set -o pipefail     # Use last non-zero exit code in a pipeline
 set -o errtrace     # Ensure the error trap handler is inherited
 
-git clone https://github.com/ra-c/libxft-bgra-debian || true
-cd libxft-bgra-debian
-git pull
-cd compiled
-sudo dpkg -i *.deb
-sudo apt --fix-broken install -y
-sudo dpkg -i *.deb
-sudo apt --fix-broken install -y
-sudo dpkg -i *.deb
+dpkg -s "isync" &>/dev/null || sudo apt install -y isync
+dpkg -s "msmtp" &>/dev/null || sudo apt install -y msmtp
+dpkg -s "curl" &>/dev/null || sudo apt install -y culr 
+dpkg -s "pass" &>/dev/null || sudo apt install -y pass
