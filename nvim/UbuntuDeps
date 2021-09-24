@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
+
+dpkg -s "ninja-build" &>/dev/null || sudo apt install -y ninja-build
+dpkg -s "gettext" &>/dev/null || sudo apt install -y gettext
+dpkg -s "libtool" &>/dev/null || sudo apt install -y libtool 
+dpkg -s "libtool-bin" &>/dev/null || sudo apt install -y libtool-bin
+dpkg -s "autoconf" &>/dev/null || sudo apt install -y autoconf
+dpkg -s "automake" &>/dev/null || sudo apt install -y automake
+dpkg -s "cmake" &>/dev/null || sudo apt install -y cmake
+dpkg -s "g++" &>/dev/null || sudo apt install -y g++
+dpkg -s "unzip" &>/dev/null || sudo apt install -y unzip
+dpkg -s "pkg-config" &>/dev/null || sudo apt install -y pkg-config
+dpkg -s "curl" &>/dev/null || sudo apt install -y curl
+
