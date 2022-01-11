@@ -27,7 +27,7 @@ function install(){
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
-uur_data_path="$HOME/.local/share/uur"
+uur_data_path="$HOME/.local/share/uur-build"
 
 mkdir -p "$uur_data_path"
 cd "$SCRIPTPATH"

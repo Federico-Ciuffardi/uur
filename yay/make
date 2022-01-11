@@ -5,7 +5,7 @@ set -o nounset      # Disallow expansion of unset variables
 set -o pipefail     # Use last non-zero exit code in a pipeline
 set -o errtrace     # Ensure the error trap handler is inherited
 
-# install nativifier
-
-mkdir ~/.zinit
-git clone https://github.com/zdharma/zinit.git ~/.zinit/bin
+cd /tmp
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si --noconfirm 
