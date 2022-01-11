@@ -81,7 +81,8 @@ function install(){
 
   # install package
   sudo -v
-  draw_spinner "Installing \"$package\"" "bash "$package_dir/make"" || true
+  [ -f "$package_dir/imake" ] && bash "$package_dir/imake" || true
+  [ -f "$package_dir/make" ]  && draw_spinner "Installing \"$package\"" "bash "$package_dir/make"" || true
 
   # go back to scriptpath
   cd "$repos_dir"
