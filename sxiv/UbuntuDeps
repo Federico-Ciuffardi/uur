@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-set -o errexit      # Exit on most errors (see the manual)
-set -o nounset      # Disallow expansion of unset variables
-set -o pipefail     # Use last non-zero exit code in a pipeline
-set -o errtrace     # Ensure the error trap handler is inherited
-
-dpkg -s "libimlib2-dev" &>/dev/null || sudo apt install -y libimlib2-dev
-dpkg -s "libexif-dev" &>/dev/null || sudo apt install -y libexif-dev

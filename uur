@@ -1,50 +1,167 @@
 #!/usr/bin/env bash
 
 source "/usr/lib/naylib"
-source "/etc/lsb-release"
+
+EXE_NAME="uur"
+
+NAME="Universal User Repository"
+
+VERSION="0.1.0"
+
+HELP_MSG="$NAME $VERSION
+
+Usage: $EXE_NAME [<flags>] <command>
+
+Flags:
+  -v, --version  output version information and exit
+  -h, --help     display this help and exit
+
+Commands:
+   list              Show the packages 
+   install           Install a package
+"
+
+#########
+# MISC  #
+#########
+
+## trap ctrl-c and call ctrl_c()
+trap ctrl_c INT
+function ctrl_c() {
+        printf "\n\nAborted, exiting...\n"
+        exit 127
+}
+
+function native-install(){
+  local distro_name="$1"
+  local pkg="$2"
+
+  case "$distro_name" in
+    Arch)
+      if pacman -Ssq "$pkg" | grep "^$pkg$" &> /dev/null ; then
+        pacman -Q "$pkg" &> /dev/null || sudo pacman -S --noconfirm --needed "$pkg"
+      elif yay -Ssq "$pkg" | grep "^$pkg$" &> /dev/null ; then 
+        yay -Q "$pkg" &> /dev/null || sudo yay -S --noconfirm --needed --noredownload --answerclean --sudoloop "$pkg"
+      fi
+      ;;
+    Ubuntu)
+      dpkg -s "$pkg" &>/dev/null || sudo apt install -y "$pkg" 
+      ;;
+    *) 
+      echo "Unsuported distro \"$distro_name\""
+      ;;
+  esac
+}
 
 function install(){
   package="$1"
-  package_realpath="$(realpath $package)"
+  package_dir="$(realpath $package)"
+
+  if ! [ -d $package_dir ] ; then
+    echo "No package \"$package\""
+    exit 1
+  fi
 
   # go to data/bin/build path
-  cd "$uur_data_path"
+  cd "$build_dir"
   mkdir -p "$package"
   cd "$package"
 
   # install package dependencies
-  ! [ -f "$package_realpath/${DISTRIB_ID}Deps" ] \
-  || draw_spinner "Installing \"$package\" dependencies" "bash "$package_realpath/${DISTRIB_ID}Deps"" \
-  || exit 1
+  deps_file="$package_dir/deps/$distro_name"
+  if [ -f "$deps_file" ] ; then 
+    echo "Installing \"$package\" dependencies:"
+    for dep in $(cat "$deps_file") ; do
+      sudo -v
+      draw_spinner "$dep" "native-install $distro_name $dep" || true
+      [ $? -eq 0 ] || exit 1
+    done
+    echo
+  fi
 
   # install package
-  draw_spinner "Installing \"$package\"" "bash "$package_realpath/make""
+  sudo -v
+  draw_spinner "Installing \"$package\"" "bash "$package_dir/make"" || true
 
   # go back to scriptpath
-  cd "$SCRIPTPATH"
+  cd "$repos_dir"
 }
 
-SCRIPT=$(readlink -f "$0")
-SCRIPTPATH=$(dirname "$SCRIPT")
+########
+# MAIN #
+########
+if [[ ${DEBUG-} =~ ^1|yes|true$ ]]; then
+    set -o xtrace       # Trace the execution of the script (debug)
+fi
 
-uur_data_path="$HOME/.local/share/uur-build"
+set -o errexit      # Exit on most errors (see the manual)
+set -o nounset      # Disallow expansion of unset variables
+set -o pipefail     # Use last non-zero exit code in a pipeline
+set -o errtrace     # Ensure the error trap handler is inherited
 
-mkdir -p "$uur_data_path"
-cd "$SCRIPTPATH"
+uur_config_dir="$HOME/.config/uur"
+mkdir -p "$uur_config_dir"
 
-case $1 in
-  list)
-    ls -d */ | sed 's#/##g'
-    ;;
-  all)
-    packages=($(ls))
-    for package in "${packages[@]}" ; do
-      [ -d "$package" ] || continue
-      install "$package"
-    done
-    ;;
-  install)
-    sudo -v
-    install "$2"
-    ;;
-esac
+uur_repos_file="$uur_config_dir/repos"
+if ! [ -f $uur_repos_file ] ; then 
+  echo "https://github.com/Federico-Ciuffardi/uur-repo-main" > $uur_repos_file
+fi
+
+build_dir="$HOME/.local/share/uur/builds"
+repos_dir="$HOME/.local/share/uur/repos"
+
+mkdir -p "$build_dir"
+
+mkdir -p "$repos_dir"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      echo "$HELP_MSG"
+      exit 0
+      ;;
+    -v|--version)
+      echo "$NAME $VERSION"
+      exit 0
+      ;;
+    update)
+      cd "$repos_dir"
+      for repo_url in $(cat $uur_repos_file) ; do
+        repo_name=${repo_url##*-}
+        repo_dir="$repos_dir/$repo_name"
+        if [ ! -d $repo_dir ] ; then
+          draw_spinner "Updating \"$repo_name\"" "git clone $repo_url" $repo_name
+        else
+          draw_spinner "Updating \"$repo_name\"" "git -C $repo_dir pull" 
+        fi
+      done
+      exit 0
+      ;;
+    list)
+      cd "$repos_dir"
+      for repo_name in $(ls) ; do
+        echo "$repo_name:"
+        ls -d "$repo_name"/* | sed 's#.*/#  #g'
+      done
+
+      exit 0
+      ;;
+    install)
+      distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
+      cd "$repos_dir"
+      install "$2"
+      exit 0
+      ;;
+    -*)
+      echo "'$1' is not a $EXE_NAME flag. See '$EXE_NAME --help'."
+      exit 2
+      ;;
+    *)
+      echo "'$1' is not a $EXE_NAME command. See '$EXE_NAME --help'."
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+printf "missing command\nTry '$EXE_NAME --help' for more information.\n"
