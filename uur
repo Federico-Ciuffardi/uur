@@ -175,6 +175,10 @@ while [ $# -gt 0 ]; do
       install "$2"
       exit 0
       ;;
+    native)
+      distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
+      native-install $distro_name $2
+      ;;
     -*)
       echo "'$1' is not a $EXE_NAME flag. See '$EXE_NAME --help'."
       exit 2
