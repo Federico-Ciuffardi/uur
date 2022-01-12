@@ -35,22 +35,44 @@ function ctrl_c() {
 function native-install(){
   local distro_name="$1"
   local pkg="$2"
+  local package_manager=""
 
   case "$distro_name" in
     Arch)
-      if pacman -Ssq "$pkg" | grep "^$pkg$" &> /dev/null ; then
-        pacman -Q "$pkg" &> /dev/null || sudo pacman -S --noconfirm --needed "$pkg"
-      elif yay -Ssq "$pkg" | grep "^$pkg$" &> /dev/null ; then 
-        yay -Q "$pkg" &> /dev/null || sudo yay -S --noconfirm --needed --noredownload --answerclean --sudoloop "$pkg"
+      if pacman -Ssq "$pkg" | grep "^$pkg$" &> /dev/null || pacman -Sqg "$pkg" &> /dev/null ; then
+
+        if ! pacman -Q "$pkg" &> /dev/null ; then
+          package_manager="sudo pacman -S --noconfirm --needed"
+        fi
+
+      elif yay -Ssq "$pkg" 2>/dev/null | grep "^$pkg$" &> /dev/null || yay -Sqg "$pkg" &> /dev/null ; then 
+
+        if ! yay -Q "$pkg" &> /dev/null ; then
+          package_manager="sudo yay -S --noconfirm --needed"
+        fi
+
+      else
+        package_manager="uur install"
       fi
       ;;
     Ubuntu)
-      dpkg -s "$pkg" &>/dev/null || sudo apt install -y "$pkg" 
+      if ! apt-cache search "$pkg" | grep "^$pkg " &> /dev/null ; then
+        if ! dpkg -s "$pkg" &>/dev/null ; then
+          package_manager="sudo apt install -y"
+        fi
+      else
+        package_manager="uur install"
+      fi
       ;;
     *) 
       echo "Unsuported distro \"$distro_name\""
+      exit 1
       ;;
   esac
+  if [ "$package_manager" != "" ] ; then
+    sudo -v
+    draw_spinner "Installing dependency: $pkg" "$package_manager $pkg" || exit 1
+  fi
 }
 
 function install(){
@@ -70,19 +92,20 @@ function install(){
   # install package dependencies
   deps_file="$package_dir/deps/$distro_name"
   if [ -f "$deps_file" ] ; then 
-    echo "Installing \"$package\" dependencies:"
     for dep in $(cat "$deps_file") ; do
-      sudo -v
-      draw_spinner "$dep" "native-install $distro_name $dep" || true
+      native-install $distro_name $dep
       [ $? -eq 0 ] || exit 1
     done
-    echo
   fi
 
   # install package
   sudo -v
-  [ -f "$package_dir/imake" ] && bash "$package_dir/imake" || true
-  [ -f "$package_dir/make" ]  && draw_spinner "Installing \"$package\"" "bash "$package_dir/make"" || true
+  if [ -f "$package_dir/imake" ] ; then 
+    bash "$package_dir/imake" || exit 1
+  fi
+  if [ -f "$package_dir/make" ] ; then 
+    draw_spinner "Installing \"$package\"" "bash "$package_dir/make"" || exit 1
+  fi
 
   # go back to scriptpath
   cd "$repos_dir"
@@ -95,7 +118,6 @@ if [[ ${DEBUG-} =~ ^1|yes|true$ ]]; then
     set -o xtrace       # Trace the execution of the script (debug)
 fi
 
-set -o errexit      # Exit on most errors (see the manual)
 set -o nounset      # Disallow expansion of unset variables
 set -o pipefail     # Use last non-zero exit code in a pipeline
 set -o errtrace     # Ensure the error trap handler is inherited
