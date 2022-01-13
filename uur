@@ -127,6 +127,8 @@ function upgrade(){
       draw_spinner "Pulling" "git -C git_src pull" || exit 1
     fi
     new_update_id=$(git -C git_src rev-parse HEAD)
+  elif [ -f "$package_spec_dir/ver" ] ; then
+    new_update_id=$(cat "$package_spec_dir/ver")
   else
     new_update_id="no_id"
   fi
@@ -210,6 +212,17 @@ function list(){
             version_file="$meta_dir/$repo_name/$pkg_name/installed_version"
             if [ -f "$version_file" ] ; then
               echo "$repo_name/$pkg_name"
+            fi
+          done
+        done
+        exit 0
+        ;;
+      -v|--versions)
+        for repo_name in $(ls) ; do
+          for pkg_name in $(ls "$repo_name") ; do
+            version_file="$meta_dir/$repo_name/$pkg_name/installed_version"
+            if [ -f "$version_file" ] ; then
+              echo "$repo_name/$pkg_name : $(cat $version_file)"
             fi
           done
         done
