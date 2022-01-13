@@ -56,7 +56,7 @@ function native-install(){
       fi
       ;;
     Ubuntu)
-      if ! apt-cache search "$pkg" | grep "^$pkg " &> /dev/null ; then
+      if apt-cache search "$pkg" | grep "^$pkg " &> /dev/null ; then
         if ! dpkg -s "$pkg" &>/dev/null ; then
           package_manager="sudo apt install -y"
         fi
