@@ -186,6 +186,55 @@ function install(){
   cd "$repos_dir"
 }
 
+function list_all_pkg(){
+  for repo_name in $(ls) ; do
+    for pkg_name in $(ls "$repo_name") ; do
+      echo "$repo_name/$pkg_name"
+    done
+  done
+
+}
+
+function list(){
+  cd "$repos_dir"
+
+  if [ $# -eq 0 ] ; then
+    list_all_pkg
+  fi
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -i|--installed)
+        for repo_name in $(ls) ; do
+          for pkg_name in $(ls "$repo_name") ; do
+            version_file="$meta_dir/$repo_name/$pkg_name/installed_version"
+            if [ -f "$version_file" ] ; then
+              echo "$repo_name/$pkg_name"
+            fi
+          done
+        done
+        exit 0
+        ;;
+      -a|--all)
+        list_all_pkg
+        exit 0
+        ;;
+      -r|--repo)
+        for repo_name in $(ls) ; do
+          echo "$repo_name"
+        done
+        exit 0
+        ;;
+
+      -*)
+        echo "'$1' is not a \"$EXE_NAME list\" flag. See '$EXE_NAME --help'."
+        exit 2
+        ;;
+    esac
+  shift
+  done
+}
+
 ########
 # MAIN #
 ########
@@ -236,12 +285,7 @@ while [ $# -gt 0 ]; do
       exit 0
       ;;
     list)
-      cd "$repos_dir"
-      for repo_name in $(ls) ; do
-        echo "$repo_name:"
-        ls -d "$repo_name"/* | sed 's#.*/#  #g'
-      done
-
+      $@
       exit 0
       ;;
     install|upgrade|sync)
