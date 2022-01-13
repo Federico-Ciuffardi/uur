@@ -32,6 +32,32 @@ function ctrl_c() {
         exit 127
 }
 
+
+function set_pkg(){
+  package="$1"
+
+  package_spec_dir="$repos_dir/$package"
+
+  if ! [ -d $package_spec_dir ] ; then
+    echo "No package \"$package\""
+    exit 1
+  fi
+
+  package_version_file="$meta_dir/$package/installed_version"
+  package_build_dir="$build_dir/$package"
+}
+
+function make(){
+  if [ -f "$package_spec_dir/imake" ] ; then 
+    sudo -v
+    bash "$package_spec_dir/imake" || exit 1
+  fi
+  if [ -f "$package_spec_dir/make" ] ; then 
+    sudo -v
+    draw_spinner "Making \"$package\"" "bash "$package_spec_dir/make"" || exit 1
+  fi
+}
+
 function native-install(){
   local distro_name="$1"
   local pkg="$2"
@@ -75,22 +101,64 @@ function native-install(){
   fi
 }
 
-function install(){
-  package="$1"
-  package_dir="$(realpath $package)"
+function sync(){
+  if [ -f $package_version_file ] ; then
+    upgrade
+  else
+    install
+  fi
 
-  if ! [ -d $package_dir ] ; then
-    echo "No package \"$package\""
+}
+
+function upgrade(){
+  if ! [ -f $package_version_file ] ; then
+    echo "\"$package\" not installed"
     exit 1
   fi
 
+  echo "Upgrading package \"$package\""
+
+  cd "$package_build_dir"
+
+  # upgrade package
+  if [ -f "$package_spec_dir/git" ] ; then
+    git_url=$(head -n1 "$package_spec_dir/git")
+    if [ -d git_src ] ; then 
+      draw_spinner "Pulling" "git -C git_src pull" || exit 1
+    fi
+    new_update_id=$(git -C git_src rev-parse HEAD)
+  else
+    new_update_id="no_id"
+  fi
+
+  if [ $new_update_id != "no_id" ] && [ "$new_update_id" = $(cat "$package_version_file") ] ; then
+    echo "\"$package\" already up to date"
+    exit 1
+  fi
+
+  make
+
+  echo "$new_update_id" > "$meta_dir/$package/installed_version"
+
+  # go back to repos_dir
+  cd "$repos_dir"
+
+}
+
+function install(){
+  if [ -f $package_version_file ] ; then
+    echo "\"$package\" already installed"
+    exit 1
+  fi
+
+  echo "Installing package \"$package\""
+
   # go to data/bin/build path
-  cd "$build_dir"
-  mkdir -p "$package"
-  cd "$package"
+  mkdir -p "$package_build_dir"
+  cd "$package_build_dir"
 
   # install package dependencies
-  deps_file="$package_dir/deps/$distro_name"
+  deps_file="$package_spec_dir/deps/$distro_name"
   if [ -f "$deps_file" ] ; then 
     for dep in $(cat "$deps_file") ; do
       native-install $distro_name $dep
@@ -99,15 +167,22 @@ function install(){
   fi
 
   # install package
-  sudo -v
-  if [ -f "$package_dir/imake" ] ; then 
-    bash "$package_dir/imake" || exit 1
-  fi
-  if [ -f "$package_dir/make" ] ; then 
-    draw_spinner "Installing \"$package\"" "bash "$package_dir/make"" || exit 1
+  if [ -f "$package_spec_dir/git" ] ; then
+    git_url=$(head -n1 "$package_spec_dir/git")
+    if ! [ -d git_src ] ; then 
+      draw_spinner "Cloning" "git clone $git_url git_src" || exit 1
+    fi
+    update_id=$(git -C git_src rev-parse HEAD)
+  else
+    update_id="no_id"
   fi
 
-  # go back to scriptpath
+  make
+
+  mkdir -p "$meta_dir/$package"
+  echo "$update_id" > "$meta_dir/$package/installed_version"
+
+  # go back to repos_dir
   cd "$repos_dir"
 }
 
@@ -131,11 +206,11 @@ if ! [ -f $uur_repos_file ] ; then
 fi
 
 build_dir="$HOME/.local/share/uur/builds"
-repos_dir="$HOME/.local/share/uur/repos"
-
 mkdir -p "$build_dir"
-
+repos_dir="$HOME/.local/share/uur/repos"
 mkdir -p "$repos_dir"
+meta_dir="$HOME/.local/share/uur/meta"
+mkdir -p "$meta_dir"
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -169,10 +244,10 @@ while [ $# -gt 0 ]; do
 
       exit 0
       ;;
-    install)
+    install|upgrade|sync)
       distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
-      cd "$repos_dir"
-      install "$2"
+      set_pkg $2
+      $1 "$2"
       exit 0
       ;;
     native)
