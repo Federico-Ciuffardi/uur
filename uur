@@ -74,11 +74,11 @@ function native-install(){
       elif yay -Ssq "$pkg" 2>/dev/null | grep "^$pkg$" &> /dev/null || yay -Sqg "$pkg" &> /dev/null ; then 
 
         if ! yay -Q "$pkg" &> /dev/null ; then
-          package_manager="sudo yay -S --noconfirm --needed"
+          package_manager="yay -S --noconfirm --needed"
         fi
 
       else
-        package_manager="uur install"
+        package_manager="uur sync"
       fi
       ;;
     Ubuntu)
@@ -87,7 +87,7 @@ function native-install(){
           package_manager="sudo apt install -y"
         fi
       else
-        package_manager="uur install"
+        package_manager="uur sync"
       fi
       ;;
     *) 
@@ -310,6 +310,7 @@ while [ $# -gt 0 ]; do
     native)
       distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
       native-install $distro_name $2
+      exit 0
       ;;
     -*)
       echo "'$1' is not a $EXE_NAME flag. See '$EXE_NAME --help'."
