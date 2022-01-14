@@ -61,24 +61,23 @@ function make(){
 function native-install(){
   local distro_name="$1"
   local pkg="$2"
+  local msg="${3:-"Installing dependency:"}"
   local package_manager=""
 
   case "$distro_name" in
     Arch)
       if pacman -Ssq "$pkg" | grep "^$pkg$" &> /dev/null || pacman -Sqg "$pkg" &> /dev/null ; then
-
         if ! pacman -Q "$pkg" &> /dev/null ; then
           package_manager="sudo pacman -S --noconfirm --needed"
         fi
-
       elif yay -Ssq "$pkg" 2>/dev/null | grep "^$pkg$" &> /dev/null || yay -Sqg "$pkg" &> /dev/null ; then 
-
         if ! yay -Q "$pkg" &> /dev/null ; then
           package_manager="yay -S --noconfirm --needed"
         fi
-
       else
-        package_manager="uur sync"
+        if ! [ -f "$meta_dir/$pkg/installed_version" ] ; then
+          package_manager="uur sync"
+        fi
       fi
       ;;
     Ubuntu)
@@ -87,7 +86,9 @@ function native-install(){
           package_manager="sudo apt install -y"
         fi
       else
-        package_manager="uur sync"
+        if ! [ -f "$meta_dir/$package/installed_version" ] ; then
+          package_manager="uur sync"
+        fi
       fi
       ;;
     *) 
@@ -97,7 +98,7 @@ function native-install(){
   esac
   if [ "$package_manager" != "" ] ; then
     sudo -v
-    draw_spinner "Installing dependency: $pkg" "$package_manager $pkg" || exit 1
+    draw_spinner "$msg $pkg" "$package_manager $pkg" || exit 1
   fi
 }
 
