@@ -132,6 +132,7 @@ function upgrade(){
     for pkg in $(list -i) ; do
       upgrade $pkg
     done
+    return $?
   fi
   set_pkg $1
   if ! [ -f $package_version_file ] ; then
