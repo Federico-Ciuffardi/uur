@@ -66,30 +66,33 @@ function native-install(){
 
   case "$distro_name" in
     Arch)
-      #  ||
-      if pacman -Sqg "$pkg" &> /dev/null ; then
-        for gpkg in `pacman -Sqg "$pkg"` ; do
-          if ! pacman -Q "$gpkg" &> /dev/null ; then
-            package_manager="sudo pacman -S --noconfirm --needed"
-          fi
-        done
-      elif pacman -Ssq "$pkg" | grep "^$pkg$" &> /dev/null ; then
-        if ! pacman -Q "$pkg" &> /dev/null ; then
-          package_manager="sudo pacman -S --noconfirm --needed"
-        fi
-      elif yay -Sqg "$pkg" &> /dev/null ; then 
-        for gpkg in `yay -Sqg "$pkg"` ; do
-          if ! yay -Q "$gpkg" &> /dev/null ; then 
-            package_manager="yay -S --noconfirm --needed"
-          fi
-        done
-      elif yay -Ssq "$pkg" 2>/dev/null | grep "^$pkg$" &> /dev/null ; then
-        if ! yay -Q "$pkg" &> /dev/null ; then
-          package_manager="yay -S --noconfirm --needed"
-        fi
-      else
+      if [ -d "$repos_dir/$pkg" ] ; then
         if ! [ -f "$meta_dir/$pkg/installed_version" ] ; then
           package_manager="uur install"
+        fi
+      elif command -v yay &> /dev/null ; then
+        if ! yay -Q "$pkg" &> /dev/null ; then
+          if yay -Sqg "$pkg" &> /dev/null ; then 
+            for gpkg in `yay -Sqg "$pkg"` ; do
+              if ! yay -Q "$gpkg" &> /dev/null ; then 
+                package_manager="yay -S --noconfirm --needed"
+              fi
+            done
+          else # if yay -Ssq "$pkg" 2>/dev/null | grep "^$pkg$" &> /dev/null ; then
+            package_manager="yay -S --noconfirm --needed"
+          fi
+        fi
+      else
+        if ! pacman -Q "$pkg" &> /dev/null ; then
+          if pacman -Sqg "$pkg" &> /dev/null ; then 
+            for gpkg in `pacman -Sqg "$pkg"` ; do
+              if ! pacman -Q "$gpkg" &> /dev/null ; then 
+                package_manager="sudo pacman -S --noconfirm --needed"
+              fi
+            done
+          else # if pacman -Ssq "$pkg" 2>/dev/null | grep "^$pkg$" &> /dev/null ; then
+            package_manager="sudo pacman -S --noconfirm --needed"
+          fi
         fi
       fi
       ;;
