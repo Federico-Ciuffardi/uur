@@ -156,7 +156,7 @@ function upgrade(){
     new_update_id="no_id"
   fi
 
-  if [ $new_update_id != "no_id" ] && [ "$new_update_id" = $(cat "$package_version_file") ] ; then
+  if [ "$new_update_id" = $(cat "$package_version_file") ] ; then
     echo "\"$package\" already up to date"
     return 0
   fi
