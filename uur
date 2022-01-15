@@ -128,6 +128,12 @@ function sync(){
 }
 
 function upgrade(){
+  if [ $# -eq 0 ] ; then
+    for pkg in $(list -i) ; do
+      upgrade $pkg
+    done
+  fi
+  set_pkg $1
   if ! [ -f $package_version_file ] ; then
     echo "\"$package\" not installed"
     exit 1
@@ -165,6 +171,7 @@ function upgrade(){
 }
 
 function install(){
+  set_pkg $1
   if [ -f $package_version_file ] ; then
     echo "\"$package\" already installed"
     exit 0
@@ -320,13 +327,13 @@ while [ $# -gt 0 ]; do
       ;;
     install|upgrade|sync)
       distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
-      set_pkg $2
-      $1 "$2"
+      $@
       exit 0
       ;;
     native)
       distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
-      native-install $distro_name $2
+      shift
+      native-install $distro_name $@
       exit 0
       ;;
     -*)
