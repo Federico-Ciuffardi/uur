@@ -40,7 +40,7 @@ function set_pkg(){
 
   if ! [ -d $package_spec_dir ] ; then
     echo "No package \"$package\""
-    exit 1
+    return 1
   fi
 
   package_version_file="$meta_dir/$package/installed_version"
@@ -50,11 +50,11 @@ function set_pkg(){
 function make(){
   if [ -f "$package_spec_dir/imake" ] ; then 
     sudo -v
-    bash "$package_spec_dir/imake" || exit 1
+    bash "$package_spec_dir/imake" || return 1
   fi
   if [ -f "$package_spec_dir/make" ] ; then 
     sudo -v
-    draw_spinner "Making \"$package\"" "bash "$package_spec_dir/make"" || exit 1
+    draw_spinner "Making \"$package\"" "bash "$package_spec_dir/make"" || return 1
   fi
 }
 
@@ -109,12 +109,12 @@ function native-install(){
       ;;
     *) 
       echo "Unsuported distro \"$distro_name\""
-      exit 1
+      return 1
       ;;
   esac
   if [ "$package_manager" != "" ] ; then
     sudo -v
-    draw_spinner "$msg $pkg" "$package_manager $pkg" || exit 1
+    draw_spinner "$msg $pkg" "$package_manager $pkg" || return 1
   fi
 }
 
@@ -136,7 +136,7 @@ function upgrade(){
   set_pkg $1
   if ! [ -f $package_version_file ] ; then
     echo "\"$package\" not installed"
-    exit 1
+    return 1
   fi
 
   echo "Upgrading package \"$package\""
@@ -147,7 +147,7 @@ function upgrade(){
   if [ -f "$package_spec_dir/git" ] ; then
     git_url=$(head -n1 "$package_spec_dir/git")
     if [ -d git_src ] ; then 
-      draw_spinner "Pulling" "git -C git_src pull" || exit 1
+      draw_spinner "Pulling" "git -C git_src pull" || return 1
     fi
     new_update_id=$(git -C git_src rev-parse HEAD)
   elif [ -f "$package_spec_dir/ver" ] ; then
@@ -158,7 +158,7 @@ function upgrade(){
 
   if [ $new_update_id != "no_id" ] && [ "$new_update_id" = $(cat "$package_version_file") ] ; then
     echo "\"$package\" already up to date"
-    exit 0
+    return 0
   fi
 
   make
@@ -174,7 +174,7 @@ function install(){
   set_pkg $1
   if [ -f $package_version_file ] ; then
     echo "\"$package\" already installed"
-    exit 0
+    return 0
   fi
 
   echo "Installing package \"$package\""
@@ -188,7 +188,7 @@ function install(){
   if [ -f "$deps_file" ] ; then 
     for dep in $(cat "$deps_file") ; do
       native-install $distro_name $dep
-      [ $? -eq 0 ] || exit 1
+      [ $? -eq 0 ] || return 1
     done
   fi
 
@@ -196,7 +196,7 @@ function install(){
   if [ -f "$package_spec_dir/git" ] ; then
     git_url=$(head -n1 "$package_spec_dir/git")
     if ! [ -d git_src ] ; then 
-      draw_spinner "Cloning" "git clone $git_url git_src" || exit 1
+      draw_spinner "Cloning" "git clone $git_url git_src" || return 1
     fi
     update_id=$(git -C git_src rev-parse HEAD)
   else
@@ -239,7 +239,7 @@ function list(){
             fi
           done
         done
-        exit 0
+        return 0
         ;;
       -v|--versions)
         for repo_name in $(ls) ; do
@@ -250,22 +250,22 @@ function list(){
             fi
           done
         done
-        exit 0
+        return 0
         ;;
       -a|--all)
         list_all_pkg
-        exit 0
+        return 0
         ;;
       -r|--repo)
         for repo_name in $(ls) ; do
           echo "$repo_name"
         done
-        exit 0
+        return 0
         ;;
 
       -*)
         echo "'$1' is not a \"$EXE_NAME list\" flag. See '$EXE_NAME --help'."
-        exit 2
+        return 2
         ;;
     esac
   shift
@@ -319,7 +319,7 @@ while [ $# -gt 0 ]; do
           draw_spinner "Updating \"$repo_name\"" "git -C $repo_dir pull" 
         fi
       done
-      exit 0
+      exit $?
       ;;
     list)
       $@
@@ -328,13 +328,13 @@ while [ $# -gt 0 ]; do
     install|upgrade|sync)
       distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
       $@
-      exit 0
+      exit $?
       ;;
     native)
       distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
       shift
       native-install $distro_name $@
-      exit 0
+      exit $?
       ;;
     -*)
       echo "'$1' is not a $EXE_NAME flag. See '$EXE_NAME --help'."
