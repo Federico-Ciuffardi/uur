@@ -2,6 +2,10 @@
 
 source "/usr/lib/naylib"
 
+build_dir="$HOME/.local/share/uur/builds"
+repos_dir="$HOME/.local/share/uur/repos"
+meta_dir="$HOME/.local/share/uur/meta"
+
 EXE_NAME="uur"
 
 NAME="Universal User Repository"
@@ -13,13 +17,36 @@ HELP_MSG="$NAME $VERSION
 Usage: $EXE_NAME [<flags>] <command>
 
 Flags:
-  -v, --version  output version information and exit
-  -h, --help     display this help and exit
+  -v, --version  Output version information and exit
+  -h, --help     Display this help and exit
 
 Commands:
+   update            Update the repositories
    list              Show the packages 
-   install           Install a package
+   install           Install packages
+   upgrade           Upgrade packages
+   native            Install a packages with the native package manager falling back to uur"
+
+HELP_MSG_UPGRADE="$NAME $VERSION
+
+Usage: $EXE_NAME upgrade [<flags>] 
+
+Flags:
+  -h, --help     Display this help and exit
+  -f, --force    Upgrade even if it is already up to date"
+
+HELP_MSG_LIST="$NAME $VERSION
+
+Usage: $EXE_NAME list [<flags>] 
+
+Flags:
+  -h, --help       Display this help and exit
+  -i, --installed  Show installed packages
+  -v, --versions   Show installed packages and versions
+  -a, --all        Show all available packages (no flag behaviour)
+  -r, --repo       Show all the used repositories (check $repos_dir)
 "
+
 
 #########
 # MISC  #
@@ -137,7 +164,7 @@ function upgrade(){
   while [ $# -gt 0 ]; do
     case "$1" in
       -h|--help)
-        echo "No help yet"
+        echo "$HELP_MSG_UPGRADE"
         exit 0
         ;;
       -f|--force)
@@ -261,6 +288,10 @@ function list(){
 
   while [ $# -gt 0 ]; do
     case "$1" in
+      -h|--help)
+        echo "$HELP_MSG_LIST"
+        exit 0
+        ;;
       -i|--installed)
         for repo_name in $(ls) ; do
           for pkg_name in $(ls "$repo_name") ; do
@@ -322,11 +353,8 @@ if ! [ -f $uur_repos_file ] ; then
   echo "https://github.com/Federico-Ciuffardi/uur-repo-main" > $uur_repos_file
 fi
 
-build_dir="$HOME/.local/share/uur/builds"
 mkdir -p "$build_dir"
-repos_dir="$HOME/.local/share/uur/repos"
 mkdir -p "$repos_dir"
-meta_dir="$HOME/.local/share/uur/meta"
 mkdir -p "$meta_dir"
 
 while [ $# -gt 0 ]; do
