@@ -33,6 +33,10 @@ function ctrl_c() {
 }
 
 
+###########
+# Setters #
+###########
+
 function set_pkg(){
   package="$1"
 
@@ -47,6 +51,10 @@ function set_pkg(){
   package_build_dir="$build_dir/$package"
 }
 
+#########
+# Utils #
+#########
+
 function make(){
   if [ -f "$package_spec_dir/imake" ] ; then 
     sudo -v
@@ -58,11 +66,15 @@ function make(){
   fi
 }
 
-function native-install(){
-  local distro_name="$1"
-  local pkg="$2"
-  local msg="${3:-"Installing dependency:"}"
-  local package_manager=""
+############
+# Commands #
+############
+
+function native(){
+  local -r pkg="$1"
+  local -r msg="${2:-"Installing dependency:"}"
+
+  package_manager=""
 
   case "$distro_name" in
     Arch)
@@ -118,23 +130,40 @@ function native-install(){
   fi
 }
 
-function sync(){
-  if [ -f $package_version_file ] ; then
-    upgrade $@
-  else
-    install $@
-  fi
-
-}
-
 function upgrade(){
-  if [ $# -eq 0 ] ; then
+  pkg=""
+  force="${force:-false}"
+
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      -h|--help)
+        echo "No help yet"
+        exit 0
+        ;;
+      -f|--force)
+        force="true"
+        ;;
+      -*)
+        echo "'$1' is not a $EXE_NAME $0 flag. See '$EXE_NAME $0 --help'."
+        exit 2
+        ;;
+      *)
+        pkg=$1
+        ;;
+    esac
+    shift
+  done
+
+  # Upgrade all
+  if [ "$pkg" = "" ] ; then
     for pkg in $(list -i) ; do
       upgrade $pkg
     done
     return $?
   fi
-  set_pkg $1 || return $?
+
+  # Upgrade one
+  set_pkg $pkg || return $?
   if ! [ -f $package_version_file ] ; then
     echo "\"$package\" not installed"
     return 1
@@ -142,6 +171,7 @@ function upgrade(){
 
   echo "Upgrading package \"$package\""
 
+  # go to data/bin/build path
   cd "$package_build_dir"
 
   # upgrade package
@@ -157,7 +187,7 @@ function upgrade(){
     new_update_id="no_id"
   fi
 
-  if [ "$new_update_id" = $(cat "$package_version_file") ] ; then
+  if ! $force && [ "$new_update_id" = $(cat "$package_version_file") ] ; then
     echo "\"$package\" already up to date"
     return 0
   fi
@@ -188,7 +218,7 @@ function install(){
   deps_file="$package_spec_dir/deps/$distro_name"
   if [ -f "$deps_file" ] ; then 
     for dep in $(cat "$deps_file") ; do
-      native-install $distro_name $dep
+      native $dep
       [ $? -eq 0 ] || return 1
     done
   fi
@@ -326,15 +356,9 @@ while [ $# -gt 0 ]; do
       $@
       exit 0
       ;;
-    install|upgrade|sync)
+    install|upgrade|native)
       distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
       $@
-      exit $?
-      ;;
-    native)
-      distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
-      shift
-      native-install $distro_name $@
       exit $?
       ;;
     -*)
