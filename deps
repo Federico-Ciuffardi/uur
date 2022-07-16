@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+function fin(){
+  cd
+  git clone https://github.com/Federico-Ciuffardi/naylib.git
+  cd naylib
+  sudo make install
+  cd ..
+  rm -rf naylib
+  exit 0
+}
+
+while true ; do
+  printf "1-Arch\n2-Ubuntu\n3-Termux\nEnter current distro: "
+  read awns
+  case awns in
+    1)
+      sudo pacman -S lsb-release
+      fin
+      ;;
+    2)
+      sudo apt update
+      sudo apt install lsb-release
+      fin
+      ;;
+    3)
+      pkg install tsu
+      pkg install proot
+      echo "ls / &>/dev/null || termux-chroot" > $HOME/.bashrc 
+      termux-chroot
+      fin
+      ;;
+    *)
+      print "Invalid awns\n"
+      ;;
+  esac
+done

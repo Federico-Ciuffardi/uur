@@ -135,7 +135,7 @@ function native(){
         fi
       fi
       ;;
-    Ubuntu)
+    Ubuntu|Termux)
       if apt-cache search "$pkg" | grep "^$pkg " &> /dev/null ; then
         if ! dpkg -s "$pkg" &>/dev/null ; then
           package_manager="sudo apt install -y"
@@ -385,7 +385,12 @@ while [ $# -gt 0 ]; do
       exit 0
       ;;
     install|upgrade|native)
-      distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
+      if command -v lsb_release &> /dev/null ; then
+        distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
+      else
+        printf "Assuming we're in termux...\n" 
+        distro_name="Termux"
+      fi
       $@
       exit $?
       ;;
