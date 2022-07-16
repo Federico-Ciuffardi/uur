@@ -24,10 +24,11 @@ while true ; do
       fin
       ;;
     3)
-      pkg install tsu
       pkg install proot
       echo "ls / &>/dev/null || termux-chroot" > $HOME/.bashrc 
       termux-chroot
+      printf '#!/bin/bash\n$@' > /bin/sudo
+      chmod +x /bin/sudo
       fin
       ;;
     *)
