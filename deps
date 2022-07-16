@@ -15,18 +15,18 @@ while true ; do
   read awns
   case $awns in
     1)
-      sudo pacman -S lsb-release
+      yay -Q "lsb-release" &> /dev/null || sudo pacman -S lsb-release
       fin
       ;;
     2)
       sudo apt update
-      sudo apt install lsb-release
+      dpkg -s "$$" &>/dev/null || sudo apt install lsb-release
       fin
       ;;
     3)
-      pkg install proot
-      echo "ls / &>/dev/null || termux-chroot" > $HOME/.bashrc 
-      termux-chroot
+      dpkg -s "proot" &>/dev/null || pkg install proot
+      echo "ls / &>/dev/null || termux-chroot" > "$HOME/.bashrc"
+      source "$HOME/.bashrc" 
       printf '#!/bin/bash\n$@' > /bin/sudo
       chmod +x /bin/sudo
       fin
