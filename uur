@@ -141,7 +141,7 @@ function native(){
           package_manager="sudo apt install -y"
         fi
       else
-        if ! [ -f "$meta_dir/$package/installed_version" ] ; then
+        if ! [ -f "$meta_dir/$pkg/installed_version" ] ; then
           package_manager="uur install"
         fi
       fi
@@ -385,12 +385,7 @@ while [ $# -gt 0 ]; do
       exit 0
       ;;
     install|upgrade|native)
-      if command -v lsb_release &> /dev/null ; then
-        distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
-      else
-        printf "Assuming we're in termux...\n" 
-        distro_name="Termux"
-      fi
+      distro_name=$(lsb_release -i | sed 's/.*:\s*//g')
       $@
       exit $?
       ;;

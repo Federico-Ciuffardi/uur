@@ -10,7 +10,7 @@ function intall_naylib(){
 }
 
 while true ; do
-  printf "1-Arch\n2-Ubuntu\n3-Termux\nEnter current distro: "
+  printf "1-Arch\n2-Ubuntu\n3-Termux\n4-None\nEnter current distro: "
   read awns
   case $awns in
     1)
@@ -26,11 +26,15 @@ while true ; do
       ;;
     3)
       dpkg -s "proot" &>/dev/null || pkg install proot
-      printf '#!/bin/bash\n[ "$@" = "-v" ] || $@' > /bin/sudo # fake sudo
+      printf '#!/bin/bash\necho "Termux"' > /bin/lsb_release # fake lsb_release
+      chmod +x /bin/lsb_release
+      printf '#!/bin/bash\n[ "$1" = "-v" ] || $@' > /bin/sudo # fake sudo
       chmod +x /bin/sudo
       intall_naylib
       termux-chroot
       exit 0
+      ;;
+    4)
       ;;
     *)
       printf "Invalid awns\n"
