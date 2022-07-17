@@ -25,8 +25,7 @@ while true ; do
       ;;
     3)
       dpkg -s "proot" &>/dev/null || pkg install proot
-      echo "ls / &>/dev/null || termux-chroot" > "$HOME/.bashrc"
-      source "$HOME/.bashrc" 
+      termux-chroot
       printf '#!/bin/bash\n[ "$@" = "-v" ] || $@' > /bin/sudo
       chmod +x /bin/sudo
       fin
