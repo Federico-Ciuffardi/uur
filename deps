@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 
-function fin(){
+function intall_naylib(){
   cd
   git clone https://github.com/Federico-Ciuffardi/naylib.git
   cd naylib
   sudo make install
   cd ..
   rm -rf naylib
-  exit 0
 }
 
 while true ; do
@@ -16,19 +15,22 @@ while true ; do
   case $awns in
     1)
       yay -Q "lsb-release" &> /dev/null || sudo pacman -S lsb-release
-      fin
+      intall_naylib
+      exit 0
       ;;
     2)
       sudo apt update
       dpkg -s "$$" &>/dev/null || sudo apt install lsb-release
-      fin
+      intall_naylib
+      exit 0
       ;;
     3)
       dpkg -s "proot" &>/dev/null || pkg install proot
-      termux-chroot
-      printf '#!/bin/bash\n[ "$@" = "-v" ] || $@' > /bin/sudo
+      printf '#!/bin/bash\n[ "$@" = "-v" ] || $@' > /bin/sudo # fake sudo
       chmod +x /bin/sudo
-      fin
+      intall_naylib
+      termux-chroot
+      exit 0
       ;;
     *)
       printf "Invalid awns\n"
