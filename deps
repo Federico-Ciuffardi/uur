@@ -10,7 +10,7 @@ function intall_naylib(){
 }
 
 while true ; do
-  printf "1-Arch\n2-Ubuntu\n3-Termux\n4-None\nEnter current distro: "
+  printf "1-Arch\n2-Ubuntu\n3-Termux\n4-Just install (not recommended)\nEnter current distro: "
   read awns
   case $awns in
     1)
@@ -35,6 +35,7 @@ while true ; do
       exit 0
       ;;
     4)
+      exit 0
       ;;
     *)
       printf "Invalid awns\n"
