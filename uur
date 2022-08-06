@@ -85,11 +85,11 @@ function set_pkg(){
 function make(){
   if [ -f "$package_spec_dir/imake" ] ; then 
     sudo -v
-    bash "$package_spec_dir/imake" || return 1
+    bash "$package_spec_dir/imake"
   fi
   if [ -f "$package_spec_dir/make" ] ; then 
     sudo -v
-    draw_spinner "Making \"$package\"" "bash "$package_spec_dir/make"" || return 1
+    draw_spinner "Making \"$package\"" "bash "$package_spec_dir/make""
   fi
 }
 
@@ -219,7 +219,7 @@ function upgrade(){
     return 0
   fi
 
-  make
+  make || exit 1
 
   echo "$new_update_id" > "$meta_dir/$package/installed_version"
 
@@ -261,7 +261,7 @@ function install(){
     update_id="no_id"
   fi
 
-  make
+  make || exit 1
 
   mkdir -p "$meta_dir/$package"
   echo "$update_id" > "$meta_dir/$package/installed_version"
