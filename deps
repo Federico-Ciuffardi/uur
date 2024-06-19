@@ -20,7 +20,8 @@ while true ; do
       ;;
     2)
       sudo apt update
-      dpkg -s "$$" &>/dev/null || sudo apt install lsb-release
+      dpkg -s "lsb-release" &>/dev/null || sudo apt install lsb-release
+      dpkg -s "make" &>/dev/null || sudo apt install make
       intall_naylib
       exit 0
       ;;
