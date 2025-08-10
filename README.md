@@ -116,3 +116,5 @@ uur install custom/package1
 #### Example 
 See https://github.com/Federico-Ciuffardi/uur-repo-main
 
+## Bootstrap
+`./bootstrap` will install `uur` and the `main/bootstrap` package to make bootstrapping my setup in a new install even easier.

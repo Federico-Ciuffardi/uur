@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if [ ! -f /bin/uur ] ; then
+  sudo make
+  uur update
+fi
+
+if uur list -i | grep main/bootstrap &> /dev/null ; then
+  uur upgrade --force main/bootstrap
+else
+  uur install main/bootstrap
+fi
